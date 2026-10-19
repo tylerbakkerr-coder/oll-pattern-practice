@@ -1,0 +1,471 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OLL Pattern Practice</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #202124;
+      color: white;
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    header {
+      width: 100%;
+      padding: 20px 12px 12px;
+      text-align: center;
+    }
+
+    h1 {
+      margin: 0 0 16px;
+      font-size: clamp(24px, 5vw, 34px);
+    }
+
+    .settings {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 18px;
+      margin-bottom: 12px;
+    }
+
+    .settings label {
+      font-size: 17px;
+      cursor: pointer;
+    }
+
+    .settings input {
+      width: 18px;
+      height: 18px;
+      vertical-align: middle;
+      accent-color: #80cbc4;
+    }
+
+    #status {
+      color: #bdc1c6;
+      font-size: 14px;
+      min-height: 20px;
+    }
+
+    #stage {
+      width: 100%;
+      height: 72vh;
+      min-height: 400px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px;
+    }
+
+    #patternImage {
+      display: none;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    #message {
+      color: #e8eaed;
+      text-align: center;
+      font-size: 17px;
+      padding: 20px;
+      line-height: 1.5;
+    }
+
+    .buttons {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      padding: 12px 12px 28px;
+    }
+
+    button {
+      border: none;
+      border-radius: 10px;
+      padding: 14px 20px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      background: #e8eaed;
+      color: #202124;
+      touch-action: manipulation;
+    }
+
+    button:hover {
+      background: #bdc1c6;
+    }
+
+    button:focus-visible,
+    input:focus-visible {
+      outline: 3px solid #80cbc4;
+      outline-offset: 3px;
+    }
+
+    #helpButton {
+      background: #80cbc4;
+    }
+
+    #helpButton:hover {
+      background: #a7e0da;
+    }
+
+    .hint {
+      color: #9aa0a6;
+      text-align: center;
+      font-size: 13px;
+      padding: 0 12px 14px;
+    }
+
+    dialog {
+      width: calc(100% - 32px);
+      max-width: 500px;
+      border: none;
+      border-radius: 14px;
+      padding: 24px;
+      background: #fff8dc;
+      color: #202124;
+      text-align: center;
+    }
+
+    dialog::backdrop {
+      background: rgba(0, 0, 0, 0.7);
+    }
+
+    dialog h2 {
+      margin-top: 0;
+    }
+
+    #helpText {
+      font-size: 20px;
+      line-height: 1.7;
+      overflow-wrap: anywhere;
+      margin: 20px 0;
+    }
+
+    @media (min-width: 700px) {
+      #stage {
+        height: 65vh;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .buttons {
+        width: 100%;
+        padding-bottom: 18px;
+      }
+
+      button {
+        padding: 13px 15px;
+      }
+
+      #stage {
+        min-height: 220px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>OLL Pattern Practice</h1>
+
+    <div class="settings">
+      <label>
+        <input type="checkbox" id="crossCheck" checked>
+        Cross patterns
+      </label>
+
+      <label>
+        <input type="checkbox" id="lineCheck" checked>
+        Line patterns
+      </label>
+    </div>
+
+    <div id="status" aria-live="polite">
+      Loading patterns...
+    </div>
+  </header>
+
+  <main id="stage">
+    <img id="patternImage" alt="Current OLL pattern">
+    <p id="message">Getting your first pattern ready...</p>
+  </main>
+
+  <div class="buttons">
+    <button id="nextButton" type="button">
+      Next Pattern (Spacebar)
+    </button>
+
+    <button id="helpButton" type="button">
+      Help (H)
+    </button>
+  </div>
+
+  <p class="hint">
+    Choose Cross or Line above. Each selected pattern appears once per round.
+  </p>
+
+  <dialog id="helpDialog">
+    <h2>Pattern Help</h2>
+    <p id="helpText"></p>
+    <button id="closeHelpButton" type="button">Close</button>
+  </dialog>
+
+  <script>
+    // ==============================================
+    // 1. PATTERN NAMES
+    // ==============================================
+
+    const crossPatterns = [
+      "cross1", "cross2", "cross3", "cross4",
+      "cross5", "cross6", "cross7"
+    ];
+
+    const linePatterns = [
+      "line1", "line2", "line3"
+    ];
+
+    // ==============================================
+    // 2. YOUR HELP MESSAGES
+    // Edit the text inside the quotation marks.
+    // ==============================================
+
+    const helpMessages = {
+      cross1: "R U R' U R U' R' U R U2' R'",
+      cross2: "R U2' (R2' U' R2 U' R2') U2' R",
+      cross3: "R2 D R' U2 R D' R' U2 R'",
+      cross4: "(r U R' U') (r' F R F')",
+      cross5: "(F R' F' r) (U R U' r')",
+      cross6: "R U2' R' U' R U' R'",
+      cross7: "R U R' U R U2' R'",
+      line1: "Write your help message for line1 here.",
+      line2: "Write your help message for line2 here.",
+      line3: "Write your help message for line3 here."
+    };
+
+    // ==============================================
+    // 3. WEBSITE STATE
+    // ==============================================
+
+    const crossCheck = document.getElementById("crossCheck");
+    const lineCheck = document.getElementById("lineCheck");
+    const patternImage = document.getElementById("patternImage");
+    const message = document.getElementById("message");
+    const status = document.getElementById("status");
+
+    const helpDialog = document.getElementById("helpDialog");
+    const helpText = document.getElementById("helpText");
+
+    let deck = [];
+    let currentPattern = null;
+    let previousPattern = null;
+
+    // ==============================================
+    // 4. GET SELECTED PATTERNS
+    // ==============================================
+
+    function getSelectedPatterns() {
+      let patterns = [];
+
+      if (crossCheck.checked) {
+        patterns.push(...crossPatterns);
+      }
+
+      if (lineCheck.checked) {
+        patterns.push(...linePatterns);
+      }
+
+      return patterns;
+    }
+
+    // ==============================================
+    // 5. SHUFFLE THE DECK
+    // Every selected pattern appears once per round.
+    // ==============================================
+
+    function shuffle(array) {
+      const result = [...array];
+
+      for (let i = result.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [result[i], result[j]] = [result[j], result[i]];
+      }
+
+      return result;
+    }
+
+    function makeNewDeck() {
+      deck = shuffle(getSelectedPatterns());
+
+      // Avoid repeating the previous pattern at the
+      // boundary between rounds, when possible.
+      if (
+        deck.length > 1 &&
+        deck[deck.length - 1] === previousPattern
+      ) {
+        [deck[0], deck[deck.length - 1]] =
+          [deck[deck.length - 1], deck[0]];
+      }
+    }
+
+    // ==============================================
+    // 6. DISPLAY THE NEXT PATTERN
+    // ==============================================
+
+    function nextPattern() {
+      const selected = getSelectedPatterns();
+
+      if (selected.length === 0) {
+        currentPattern = null;
+        deck = [];
+        patternImage.style.display = "none";
+        message.style.display = "block";
+        message.textContent =
+          "Select Cross patterns, Line patterns, or both to begin.";
+        status.textContent = "No patterns selected";
+        return;
+      }
+
+      // Update the deck if the selection has changed.
+      if (deck.some(pattern => !selected.includes(pattern))) {
+        deck = [];
+      }
+
+      if (deck.length === 0) {
+        makeNewDeck();
+      }
+
+      currentPattern = deck.pop();
+      previousPattern = currentPattern;
+
+      status.textContent =
+        currentPattern.toUpperCase() +
+        " — " + (deck.length + 1) +
+        " pattern(s) remaining in this round";
+
+      message.style.display = "none";
+      patternImage.style.display = "block";
+
+      // Images must be in the "images" folder.
+      patternImage.src =
+        "images/" + currentPattern + ".png";
+
+      patternImage.alt =
+        "OLL pattern " + currentPattern;
+
+      // Update help if the window is already open.
+      if (helpDialog.open) {
+        updateHelp();
+      }
+    }
+
+    patternImage.addEventListener("error", function () {
+      patternImage.style.display = "none";
+      message.style.display = "block";
+      message.textContent =
+        "Couldn't load " + currentPattern + ".png. " +
+        "Make sure it is inside the images folder, " +
+        "next to index.html.";
+    });
+
+    // ==============================================
+    // 7. HELP WINDOW
+    // ==============================================
+
+    function updateHelp() {
+      if (!currentPattern) {
+        helpText.textContent =
+          "Choose your patterns and press Next Pattern first.";
+        return;
+      }
+
+      helpText.textContent =
+        helpMessages[currentPattern] ||
+        "No help message has been added yet.";
+    }
+
+    function toggleHelp() {
+      if (helpDialog.open) {
+        helpDialog.close();
+        return;
+      }
+
+      updateHelp();
+      helpDialog.showModal();
+    }
+
+    document.getElementById("helpButton")
+      .addEventListener("click", toggleHelp);
+
+    document.getElementById("closeHelpButton")
+      .addEventListener("click", function () {
+        helpDialog.close();
+      });
+
+    // Close the help window by clicking outside it.
+    helpDialog.addEventListener("click", function (event) {
+      if (event.target === helpDialog) {
+        helpDialog.close();
+      }
+    });
+
+    // ==============================================
+    // 8. BUTTONS AND KEYBOARD SHORTCUTS
+    // ==============================================
+
+    document.getElementById("nextButton")
+      .addEventListener("click", nextPattern);
+
+    document.addEventListener("keydown", function (event) {
+      // Don't trigger shortcuts while typing in a field.
+      if (
+        event.target instanceof HTMLInputElement ||
+        event.target instanceof HTMLTextAreaElement
+      ) {
+        return;
+      }
+
+      if (event.code === "Space") {
+        event.preventDefault();
+        nextPattern();
+      }
+
+      if (event.key.toLowerCase() === "h") {
+        event.preventDefault();
+        toggleHelp();
+      }
+    });
+
+    // Changing selections starts a fresh round.
+    crossCheck.addEventListener("change", function () {
+      deck = [];
+      nextPattern();
+    });
+
+    lineCheck.addEventListener("change", function () {
+      deck = [];
+      nextPattern();
+    });
+
+    // ==============================================
+    // 9. START THE WEBSITE
+    // ==============================================
+
+    nextPattern();
+  </script>
+</body>
+</html>
